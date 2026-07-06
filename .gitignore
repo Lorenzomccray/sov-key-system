@@ -1,0 +1,10 @@
+# Secrets — NEVER commit
+.env
+
+# Docker volumes / data
+/data/
+*.db
+
+# Python
+__pycache__/
+*.pyc
