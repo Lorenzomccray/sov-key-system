@@ -28,28 +28,32 @@ import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 
-# ── Configuration ─────────────────────────────────────────────────────
-# Streamlit Cloud serves secrets via st.secrets (TOML in App Settings).
-# Falls back to os.getenv() for Docker/local, then to hardcoded defaults.
-def _get_config(key: str, default: str) -> str:
-    """Read from st.secrets first (Streamlit Cloud), then os.getenv, then default."""
-    try:
-        return st.secrets.get(key, os.getenv(key, default))
-    except Exception:
-        return os.getenv(key, default)
-
-KEY_AUTHORITY = _get_config("KEY_AUTHORITY_URL", "http://key-authority:8001")
-GATEWAY = _get_config("GATEWAY_URL", "http://gateway:8000")
-ADMIN_KEY = _get_config("MASTER_ADMIN_KEY", "sov_master_admin_do_not_share")
-DASHBOARD_AI_KEY = _get_config("DASHBOARD_AI_KEY", "")
-
-# ── Page Config ───────────────────────────────────────────────────────
+# ── Page Config (MUST be first st. call) ──────────────────────────────
 st.set_page_config(
     page_title="GODMODE COMMAND CENTER",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+# ── Configuration ─────────────────────────────────────────────────────
+# Streamlit Cloud serves secrets via st.secrets (TOML from App Settings).
+# Falls back to os.getenv() for Docker/local, then to hardcoded defaults.
+# Loaded AFTER st.set_page_config() so st.secrets is initialized.
+def _get_config(key: str, default: str) -> str:
+    """Read st.secrets first, then os.getenv, then default."""
+    try:
+        val = st.secrets.get(key)
+        if val is not None:
+            return str(val)
+    except Exception:
+        pass
+    return os.getenv(key, default)
+
+KEY_AUTHORITY = _get_config("KEY_AUTHORITY_URL", "http://key-authority:8001")
+GATEWAY = _get_config("GATEWAY_URL", "http://gateway:8000")
+ADMIN_KEY = _get_config("MASTER_ADMIN_KEY", "sov_master_admin_do_not_share")
+DASHBOARD_AI_KEY = _get_config("DASHBOARD_AI_KEY", "")
 
 # ── Custom CSS ────────────────────────────────────────────────────────
 st.markdown("""
