@@ -37,23 +37,14 @@ st.set_page_config(
 )
 
 # ── Configuration ─────────────────────────────────────────────────────
-# Streamlit Cloud serves secrets via st.secrets (TOML from App Settings).
-# Falls back to os.getenv() for Docker/local, then to hardcoded defaults.
-# Loaded AFTER st.set_page_config() so st.secrets is initialized.
-def _get_config(key: str, default: str) -> str:
-    """Read st.secrets first, then os.getenv, then default."""
-    try:
-        val = st.secrets.get(key)
-        if val is not None:
-            return str(val)
-    except Exception:
-        pass
-    return os.getenv(key, default)
-
-KEY_AUTHORITY = _get_config("KEY_AUTHORITY_URL", "http://key-authority:8001")
-GATEWAY = _get_config("GATEWAY_URL", "http://gateway:8000")
-ADMIN_KEY = _get_config("MASTER_ADMIN_KEY", "sov_master_admin_do_not_share")
-DASHBOARD_AI_KEY = _get_config("DASHBOARD_AI_KEY", "")
+# Module-level config MUST use os.getenv() only — st.secrets is not
+# available at import time on Streamlit Cloud and will crash the app.
+# To use TOML secrets from App Settings, read st.secrets at render time
+# (see the "🔐 Secrets" diagnostic tab below).
+KEY_AUTHORITY = os.getenv("KEY_AUTHORITY_URL", "http://key-authority:8001")
+GATEWAY = os.getenv("GATEWAY_URL", "http://gateway:8000")
+ADMIN_KEY = os.getenv("MASTER_ADMIN_KEY", "sov_master_admin_do_not_share")
+DASHBOARD_AI_KEY = os.getenv("DASHBOARD_AI_KEY", "")
 
 # ── Custom CSS ────────────────────────────────────────────────────────
 st.markdown("""
