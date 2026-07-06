@@ -29,10 +29,19 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # ── Configuration ─────────────────────────────────────────────────────
-KEY_AUTHORITY = os.getenv("KEY_AUTHORITY_URL", "http://key-authority:8001")
-GATEWAY = os.getenv("GATEWAY_URL", "http://gateway:8000")
-ADMIN_KEY = os.getenv("MASTER_ADMIN_KEY", "sov_master_admin_do_not_share")
-DASHBOARD_AI_KEY = os.getenv("DASHBOARD_AI_KEY", "")
+# Streamlit Cloud serves secrets via st.secrets (TOML in App Settings).
+# Falls back to os.getenv() for Docker/local, then to hardcoded defaults.
+def _get_config(key: str, default: str) -> str:
+    """Read from st.secrets first (Streamlit Cloud), then os.getenv, then default."""
+    try:
+        return st.secrets.get(key, os.getenv(key, default))
+    except Exception:
+        return os.getenv(key, default)
+
+KEY_AUTHORITY = _get_config("KEY_AUTHORITY_URL", "http://key-authority:8001")
+GATEWAY = _get_config("GATEWAY_URL", "http://gateway:8000")
+ADMIN_KEY = _get_config("MASTER_ADMIN_KEY", "sov_master_admin_do_not_share")
+DASHBOARD_AI_KEY = _get_config("DASHBOARD_AI_KEY", "")
 
 # ── Page Config ───────────────────────────────────────────────────────
 st.set_page_config(
